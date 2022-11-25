@@ -2,7 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as Rotate, Rotation
 
+def cube_rotate(self, cube_number, action_degree, axis):
 
+    self.coordinates = np.array(self.coordinates).astype(int)
+    toMinus = coordinates[cube_number]
+    self.coordinates = self.coordinates - toMinus
+    for i in range(cube_number, 27):
+        r = Rotate.from_euler(axis, action_degree, degrees=True)
+        self.coordinates[i] = r.apply(self.coordinates[i])
+
+    np.array(self.coordinates).astype(int)
+    self.coordinates = self.coordinates + toMinus
 class Simulator:
 
     def __init__(self, coordinates, sticky_cubes):
@@ -24,12 +34,12 @@ def display(coordinates):
     plt.show()
 
 
-def cube_rotate(self, cube_number, action_degree, axis):
-    for i in range(cube_number, 27):
-        r = Rotate.from_euler(axis, action_degree, degrees=True)
-        self.coordinates[i] = r.apply(self.coordinates[i])
-        self.coordinates[i] = self.coordinates[i].tolist()  # to check
-        self.coordinates[i] = list(map(int, self.coordinates[i]))
+# def cube_rotate(self, cube_number, action_degree, axis):
+#     for i in range(cube_number, 27):
+#         r = Rotate.from_euler(axis, action_degree, degrees=True)
+#         self.coordinates[i] = r.apply(self.coordinates[i])
+#         self.coordinates[i] = self.coordinates[i].tolist()  # to check
+#         self.coordinates[i] = list(map(int, self.coordinates[i]))
 
 
 # def cubeRotate(self, CubeNumber, actionDegree):
@@ -58,7 +68,7 @@ connected = [[25, 26]]
 game = Simulator(coordinates, connected)
 # before
 display(game.coordinates)
-cube_rotate(game, 7-1, 90 ,'z')
-display(game.coordinates)
+cube_rotate(game, 7-1, 90 ,'x')
+display(game.coordinates.tolist())
 print(game.coordinates)
 # after

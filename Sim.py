@@ -75,11 +75,18 @@ class Simulator:
         return flag, array_connected, index
 
     def cube_rotate(self, cube_number, action_degree, axis):
+        self.coordinates = numpy.array(self.coordinates).astype(int)
+        to_minus = self.coordinates[cube_number]
+        self.coordinates = self.coordinates - to_minus
         for i in range(cube_number, 27):
             r = Rotate.from_euler(axis, action_degree, degrees=True)
             self.coordinates[i] = r.apply(self.coordinates[i])
-            self.coordinates[i] = self.coordinates[i].tolist()  # to check
-            self.coordinates[i] = list(map(int, self.coordinates[i]))
+    # def cube_rotate(self, cube_number, action_degree, axis):
+    #     for i in range(cube_number, 27):
+    #         r = Rotate.from_euler(axis, action_degree, degrees=True)
+    #         self.coordinates[i] = r.apply(self.coordinates[i])
+    #         self.coordinates[i] = self.coordinates[i].tolist()  # to check
+    #         self.coordinates[i] = list(map(int, self.coordinates[i]))
 
     def check_coordinates(self):
         for i in range(0, len(self.coordinates)):
@@ -91,18 +98,18 @@ class Simulator:
         return True
 
     def take_action(self, action_cube_num, action_axis, action_degree):
-        axis1, axis2 = self.get_axis(actionCubeNum1 - 1, actionCubeNum2 - 1)
-        print(axis1)
-        print(axis2)
-        boolConnected, d1ArrayConnected, indexConnected = self.isConnected(actionCubeNum2 - 1)
-
-        if (boolConnected == False and axis1 == axis2):  # firsh part
-            print("nothing happend !")
-        elif (boolConnected == False and axis1 != axis2):  # second part
-            print("ssss")
-            self.cubeRotate(actionCubeNum2 - 1, actionDegree)
-        elif (boolConnected == True and axis1 != axis2):  # second part
-            self.cubeRotate(actionCubeNum2 - 1, actionDegree)
+        # axis1, axis2 = self.get_axis(actionCubeNum1 - 1, actionCubeNum2 - 1)
+        # print(axis1)
+        # print(axis2)
+        # boolConnected, d1ArrayConnected, indexConnected = self.isConnected(actionCubeNum2 - 1)
+        #
+        # if (boolConnected == False and axis1 == axis2):  # firsh part
+        #     print("nothing happend !")
+        # elif (boolConnected == False and axis1 != axis2):  # second part
+        #     print("ssss")
+        #     self.cubeRotate(actionCubeNum2 - 1, actionDegree)
+        # elif (boolConnected == True and axis1 != axis2):  # second part
+        #     self.cubeRotate(actionCubeNum2 - 1, actionDegree)
         # axis = self.get_axis(action_cube_num - 1) \\todo commented by mohamad javad
         bool_connected, array_connected, index_connected = self.is_connected(action_cube_num - 1)
 
