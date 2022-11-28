@@ -1,0 +1,13 @@
+problem,status,run_time,score
+0,completed,1.2229,1000.0
+1,completed,1.1581,1000.0
+2,timeout,nan,0
+3,timeout,nan,0
+4,completed,1.1459,1000.0
+5,completed,1.299,500.0
+6,completed,1.1103,1000.0
+7,completed,1.2945,500.0
+8,timeout,nan,0
+9,completed,1.2827,333.3333333333333
+10,completed,1.1842,1000.0
+11,error,nan,0
