@@ -31,8 +31,8 @@ print(f"valid actions : {actions_list}")
 #     # dtypes = numpy.result_type(numpy.asarray(*arrays))
 #     # print(f"dtypes{dtypes.type}")
 #     arr = numpy.empty([len(a) for a in arrays] + [la], dtype=object)
-#     for i, a in enumerate(numpy.ix_(*arrays)):
-#         arr[..., i] = a
+#     for problem, a in enumerate(numpy.ix_(*arrays)):
+#         arr[..., problem] = a
 #     return arr.reshape(-1, la)
 #
 #

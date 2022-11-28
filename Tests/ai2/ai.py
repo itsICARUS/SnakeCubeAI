@@ -1,8 +1,6 @@
-import json
-import numpy as np
 from queue import PriorityQueue
 from time import time
-from ai2.sim import *
+from Tests.ai2.sim import *
 # *** you can change everything except the name of the class, the act function and the sensor_data ***
 
 

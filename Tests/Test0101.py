@@ -1,5 +1,3 @@
-import numpy as np
-
 from Sim import *
 import matplotlib.pyplot as plt
 
@@ -18,7 +16,7 @@ class Node:
             self.act = None
             self.h = float("inf")
             self.g = 0
-            self.coo=None
+            self.coo = None
 
     def f_getter(self):
         return self.g + self.h
@@ -46,7 +44,6 @@ def return_parents(current_node):
 
 def astar(game):
     """Returns a list of tuples as a path from the given start to the given end in the given maze"""
-    main_game = game.coordinates
     interface = Interface(game)
     # Create start and end node
     start_node = Node(None, None)
@@ -78,34 +75,48 @@ def astar(game):
                 current_node = item
                 current_index = index
 
+        # print(current_node.f_getter())
         # Pop current off open list, add to closed list
         open_list.pop(current_index)
         # take action
-        coo = game.coordinates
-        x = coo[:, 0]
-        y = coo[:, 1]
-        z = coo[:, 2]
 
-        ax = plt.axes(projection='3d')
-        ax.plot3D(x, y, z, 'gray')
-        ax.scatter(x, y, z, c=z)
-        plt.show()
+        # if current_node.act == [12, 'x', -90]:
+        #     print(current_node.coo)
+        #     coo = game.coordinates
+        #     x = coo[:, 0]
+        #     y = coo[:, 1]
+        #     z = coo[:, 2]
+        #
+        #     ax = plt.axes(projection='3d')
+        #     ax.plot3D(x, y, z, 'gray')
+        #     ax.scatter(x, y, z, c=z)
+        #     plt.show()
         print(f"\nbefore :{game.coordinates.tolist()}\nact: {current_node.act}:g:{current_node.g}:h:{current_node.h}")
-        # interface.game.coordinates = current_node.coo
-        interface.evolve(current_node.act)
+        current_node
+        interface.game.coordinates = current_node.coo
+        # interface.evolve(current_node.act)
         print(f"after :{game.coordinates.tolist()}\n\n")
-        coo = game.coordinates
-        x = coo[:, 0]
-        y = coo[:, 1]
-        z = coo[:, 2]
-        ax = plt.axes(projection='3d')
-        ax.plot3D(x, y, z, 'gray')
-        ax.scatter(x, y, z, c=z)
-        plt.show()
+        # coo = game.coordinates
+        # x = coo[:, 0]
+        # y = coo[:, 1]
+        # z = coo[:, 2]
+        # ax = plt.axes(projection='3d')
+        # ax.plot3D(x, y, z, 'gray')
+        # ax.scatter(x, y, z, c=z)
+        # plt.show()
         # interface.evolve(current_node.act)
         closed_list.append(current_node)
         # Found the goal
         if interface.goal_test():
+            coo = game.coordinates
+            x = coo[:, 0]
+            y = coo[:, 1]
+            z = coo[:, 2]
+
+            ax = plt.axes(projection='3d')
+            ax.plot3D(x, y, z, 'gray')
+            ax.scatter(x, y, z, c=z)
+            plt.show()
             print("\n\tend\n\n")
             return return_parents(current_node)
 
@@ -135,39 +146,17 @@ def astar(game):
             open_list.append(child)
 
 
-def main():
-    coo = np.asarray([[0, 0, 0], [1, 0, 0], [2, 0, 0],
-                      [2, 1, 0],
-                      [3, 1, 0], [3, 2, 0], [3, 3, 0],
-                      [4, 3, 0], [4, 4, 0], [4, 5, 0],
-                      [3, 5, 0],
-                      [3, 6, 0], [2, 6, 0], [1, 6, 0],
-                      [1, 7, 0],
-                      [1, 8, 0], [2, 8, 0],
-                      [2, 9, 0],
-                      [3, 9, 0], [3, 10, 0], [3, 11, 0],
-                      [2, 11, 0],
-                      [1, 11, 0], [1, 12, 0], [1, 13, 0],
-                      [0, 13, 0], [-1, 13, 0]
-                      ])
+def main(coo, connected):
 
-    connected = [[25, 26]]
-
-    maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-    start = (0, 0)
+    # coo = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 2], [0, 1, 1], [0, 1, 0], [0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 2, 2],
+    #        [1, 2, 1], [1, 2, 0], [1, 1, 0], [1, 1, 1], [1, 1, 2], [1, 0, 2], [1, 0, 1], [1, 0, 0], [2, 0, 0], [2, 0, 1],
+    #        [2, 0, 2], [2, 1, 2], [2, 1, 1], [2, 1, 0], [2, 2, 0], [3, 2, 0], [4, 2, 0]]
+    # coo = np.asarray(coo)
+    # sticky_cubes = [[25, 26]]
 
     path = astar(Simulator(coo, connected))
-    print(path)
+    for i in path:
+        print(i.act)
 
 
 if __name__ == '__main__':

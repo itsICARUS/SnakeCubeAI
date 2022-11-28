@@ -1,5 +1,3 @@
-import math
-
 from scipy.spatial.transform import Rotation as Rotate
 import random
 import numpy
@@ -8,7 +6,7 @@ import numpy
 class Simulator:
 
     def __init__(self, coordinates, sticky_cubes):
-        self.coordinates = coordinates
+        self.coordinates = numpy.asarray(coordinates)
         self.sticky_cubes = self.change_sticky_cubes(sticky_cubes)
 
     @staticmethod
@@ -17,7 +15,6 @@ class Simulator:
         a = 0
         ep = len(sticky_cubes_original) - 1
         for i in range(0, ep):
-            # print(sticky_cubes_original)
             if i + 1 + a <= len(sticky_cubes_original) - 1:
                 if (sticky_cubes_original[i + a][len(sticky_cubes_original[i + a]) - 1] ==
                         sticky_cubes_original[i + a + 1][
@@ -32,20 +29,21 @@ class Simulator:
         return sticky_cubes_original
 
     def open_cube(self):
+        coo = numpy.asarray(self.coordinates.copy())
         random_cube = random.randint(1, 27)
         random_axis = random.randint(1, 3)
         random_degree = random.randrange(90, 270, 90)
+        print(f"{random_cube}:{random_degree}:{random_axis}")
         if random_axis == 1:
             axis = 'x'
         elif random_axis == 2:
             axis = 'y'
         else:
             axis = 'z'
-        for i in range(random_cube, 27):
-            r = Rotate.from_euler(axis, random_degree, degrees=True)
-            self.coordinates[i] = r.apply(self.coordinates[i])
-            self.coordinates[i] = self.coordinates[i].tolist()
-            self.coordinates[i] = list(map(int, self.coordinates[i]))
+        self.take_action(random_cube - 1, axis, random_degree)
+        print(f"{coo.tolist()}\nvs cs\n{self.coordinates.tolist()}")
+        if numpy.array_equiv(coo, self.coordinates):
+            self.open_cube()
 
     def get_axis(self, cube_num):
 
@@ -75,67 +73,46 @@ class Simulator:
         return flag, array_connected, index
 
     def cube_rotate(self, cube_number, action_degree, axis):
+
         self.coordinates = numpy.array(self.coordinates).astype(int)
         to_minus = self.coordinates[cube_number]
         self.coordinates = self.coordinates - to_minus
         for i in range(cube_number, 27):
             r = Rotate.from_euler(axis, action_degree, degrees=True)
-            self.coordinates[i] = r.apply(self.coordinates[i])
-    # def cube_rotate(self, cube_number, action_degree, axis):
-    #     for i in range(cube_number, 27):
-    #         r = Rotate.from_euler(axis, action_degree, degrees=True)
-    #         self.coordinates[i] = r.apply(self.coordinates[i])
-    #         self.coordinates[i] = self.coordinates[i].tolist()  # to check
-    #         self.coordinates[i] = list(map(int, self.coordinates[i]))
+            rr = r.as_matrix().T.astype(int)
+            self.coordinates[i] = self.coordinates[i] @ rr
+
+        numpy.array(self.coordinates).astype(int)
+        self.coordinates = self.coordinates + to_minus
 
     def check_coordinates(self):
         for i in range(0, len(self.coordinates)):
             for j in range(0, len(self.coordinates)):
                 if i != j:
-                    if self.coordinates[i] == self.coordinates[j]:
+                    temp = 0
+                    for z in range(0, 3):
+                        if self.coordinates[i][z] == self.coordinates[j][z]:
+                            temp += 1
+                    if temp == 3:
                         return False
-
         return True
 
     def take_action(self, action_cube_num, action_axis, action_degree):
-        # axis1, axis2 = self.get_axis(actionCubeNum1 - 1, actionCubeNum2 - 1)
-        # print(axis1)
-        # print(axis2)
-        # boolConnected, d1ArrayConnected, indexConnected = self.isConnected(actionCubeNum2 - 1)
-        #
-        # if (boolConnected == False and axis1 == axis2):  # firsh part
-        #     print("nothing happend !")
-        # elif (boolConnected == False and axis1 != axis2):  # second part
-        #     print("ssss")
-        #     self.cubeRotate(actionCubeNum2 - 1, actionDegree)
-        # elif (boolConnected == True and axis1 != axis2):  # second part
-        #     self.cubeRotate(actionCubeNum2 - 1, actionDegree)
-        # axis = self.get_axis(action_cube_num - 1) \\todo commented by mohamad javad
+        coo = self.coordinates.copy()
         bool_connected, array_connected, index_connected = self.is_connected(action_cube_num - 1)
-
-        if not bool_connected:  # second part
+        if not bool_connected:
             self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-        # self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-        # if not bool_connected and action_axis == axis:  # first part \\\\todo commented by mohamad javad
-        # #     print("nothing happened !")
-        # elif not bool_connected and action_axis != axis:  # second part
-        #     self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-        # # elif bool_connected and action_axis != axis:  # second part
-        # #     self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-        # TODO !!!!!
-        if bool_connected:
 
-            for iConnected in array_connected:
-                '''for all connected cubes to the action_cube'''
-                if iConnected != index_connected:
-                    '''is not the action cube itself'''
-                    if iConnected + 1 not in array_connected:
-                        '''and its the last one'''
-                        temp_axis = self.get_axis(iConnected - 1)
-                        '''get axis of <the last one and the one after it>'''
-                        if action_axis != temp_axis:
-                            '''if they are not same'''
-                            self.cube_rotate(iConnected - 1, action_degree, action_axis)
+        else:
+            if len(array_connected) == index_connected + 1:
+                self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
+            else:
+                if self.get_axis(array_connected[-1]) == action_axis:
+                    self.cube_rotate(array_connected[-1] - 1, action_degree, action_axis)
+
+        if not check_coordinates(self.coordinates):
+            self.coordinates = coo
+            print("attention !!!!!\nnothing happen!\n attention !!!!!")
 
 
 def dis(coo1, coo2):
@@ -143,29 +120,18 @@ def dis(coo1, coo2):
 
 
 def heuristic(coo):
-    max_d = 3*math.sqrt(3)
+    max_d = 6
     for i in range(0, 27):
-        for j in range(0, i - 4):
+        for j in range(0, 27):
             d = dis(coo[j], coo[i])
             max_d = max(d, max_d)
-        for j in range(i + 4, 27):
-            d = dis(coo[j], coo[i])
-            max_d = max(d, max_d)
-    # print(f"max_d : ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n {max_d}")
-    return max_d
-    # x = coordinates[:, 0]
-    # y = coordinates[:, 1]
-    # z = coordinates[:, 2]
-    # a = abs(numpy.unique(x, return_counts=True)[1]).sum() \
-    #     + abs(numpy.unique(y, return_counts=True)[1]).sum() + abs(numpy.unique(z, return_counts=True)[1].sum())
-    # # b = (a - 81) / len(state.real_joints)
-    # return a - 81
+    return max_d - 6
 
 
 class Interface:
 
     def __init__(self, game):
-        self.game = game
+        self.game = Simulator(game.coordinates, game.sticky_cubes)
         pass
 
     # an example for what this class is supposed to do
@@ -199,15 +165,12 @@ class Interface:
         counter = 0
         for row in self.game.coordinates:
             counter = 0
-            # print(row)
             for i in range(0, 3):
                 for j in range(0, 3):
                     for k in range(0, 3):
                         for point in self.game.coordinates:
                             if row[0] + i == point[0] and row[1] + j == point[1] and row[2] + k == point[2]:  # and ...
                                 counter += 1
-                            # else:
-                            # break
             if counter == 27:
                 break
         if counter == 27:
@@ -231,69 +194,34 @@ class Interface:
         # TODO return list of legal actions
         return [90, -90, 180]
 
-    # def getEachPosition(self):
-    # for(int i = 0 ; i<27 ; i++):
     def perceive(self):
-        return [self.game.coordinates, self.game.sticky_cubes]
+        perc = "{\"coordinates\": " + \
+               f"{self.game.coordinates.tolist()}, \"stick_together\":" \
+               f" {numpy.asarray(self.game.sticky_cubes, dtype=object).tolist()}" \
+               + "}"
+        return perc
 
     def valid_actions(self):
 
         return self.filter_impossibles()
 
     def filter_impossibles(self):
-        coordinates = self.game.coordinates
         true_actions = []
         for action_cube_num in range(1, 28):
             possible_axes_place = self.get_possible_axes_place(action_cube_num - 1)
-            # print(f"possible axes :{possible_axes_place} in cube={action_cube_num}\n")
             if len(possible_axes_place) == 0:
                 continue
             possible_axes = possible_axes_place[:, 0]
-            # print(f"possible axes :{possible_axes} in cube={action_cube_num}\n")
             actions_space = cartesian_product(possible_axes,
-                                              self.valid_actions_degree()
-                                              )
-            # for act in actions_space[action_cube_num * 9: (action_cube_num + 1) * 9]:
+                                              self.valid_actions_degree())
             for act in actions_space:
-                # print(f"act:{act}")
-                # print(f"(ACT SPACE).pop() IS :{actions_space[-1]}\n")
                 action_axis = act[0]
-                # print(f"possible axes :{possible_axes} ,cube_num={action_cube_num}\n act axis_place is :{
-                # action_axis}")
-                # if action_axis in possible_axes:
                 for axis_place in possible_axes_place:
-                    # print(f"axis_place: {axis_place}\taction_axis: {action_axis}")
                     if axis_place[0] == action_axis:
-                        # print("action_cube_num Have 1")
-                        # print(f"act :{act} in axis_place[1]={axis_place[1]}\n")
                         coo = self.is_a_possible_degree(action_cube_num, act, axis_place[1])
                         if coo is not None:
-                            # true_act = [action_cube_num, act[0], act[1], int(axis_place[1]), heuristic(coo)]
-                            # print(f"\nit's valid : {true_act} on {coordinates}\nto coo: {coo}")
-                            true_act = [action_cube_num, act[0], act[1], coo]
+                            true_act = [action_cube_num, action_axis, act[1], coo]
                             true_actions.append(true_act)
-                            # print(f"true_actions.append(act) :{true_act} \n")
-                #             print(f"\nit's valid : {act} on {coordinates[action_cube_num]}\n")  # //TODO
-            # axis_place = self.game.get_axis(action_cube_num - 1)
-            # bool_connected, array_connected, index_connected = self.is_connected(action_cube_num - 1)
-            # if not bool_connected and action_axis == axis_place:  # first part
-            #     print("nothing happened !")
-            # elif not bool_connected and action_axis != axis_place:  # second part
-            #     self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-            # elif bool_connected and action_axis != axis_place:  # second part
-            #     self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-            #
-            # if bool_connected:
-            #     z = 1
-            #     for iConnected in array_connected:
-            #         if iConnected != index_connected:
-            #             if iConnected + 1 not in array_connected:
-            #                 temp_axis = self.get_axis(iConnected - 1)
-            #                 if action_axis != temp_axis:
-            #                     self.cube_rotate(iConnected - 1, action_degree, action_axis)
-
-            # if x[0] != 26:
-            #     print(x[2])
 
         return true_actions
 
@@ -301,24 +229,15 @@ class Interface:
         axes = []
         connected, array_connected, index = self.game.is_connected(cube_num)
         if not connected:
-            # print(f"CUBE NUMBER started is :{cube_num}\n")
             if 26 > cube_num > 0:
-                ax_before = self.game.get_axis(cube_num-1)
+                ax_before = self.game.get_axis(cube_num - 1)
                 ax_after = self.game.get_axis(cube_num)
                 if ax_after != ax_before:
                     axes.append([ax_after, 0])
-                # print(f"CUBE NUMBER IS less than 26 :{cube_num}\n")
-            # if cube_num > 0:
-            #     # print(f"CUBE NUMBER IS more than 0 :{cube_num}\n")
-            #     axes.append([self.game.get_axis(cube_num - 1), -1])
-            '''it was the left hand which is commented(deleted) up'''
         else:
             flag = True
             if index == 0:
-                '''it is connected to next one'''
-                # if cube_num > 0:
-                #     axes.append([self.game.get_axis(cube_num - 1), -1])
-                '''it was the left hand which is commented(deleted) up '''
+                '''it is sticky_cubes to next one'''
                 for i in array_connected:
                     i -= 1
                     if i > 23:
@@ -331,88 +250,32 @@ class Interface:
                     axes.append([self.game.get_axis(array_connected[0] - 2),
                                  len(array_connected) - 1])
             elif array_connected[index] == array_connected[-1]:
-                """it is connected to the prev one"""
+                """it is sticky_cubes to the prev one"""
                 if cube_num < 26:
                     axes.append([self.game.get_axis(cube_num), 0])
-                # for i in range(1, len(array_connected)):
-                #     if cube_num - i < 2:
-                #         flag = False
-                #         break
-                #     if self.game.get_axis(cube_num - i) != self.game.get_axis(cube_num - i - 1):
-                #         flag = False
-                #         break
-                # if flag:
-                #     axes.append([self.game.get_axis(array_connected[-1] - 2),
-                #                  -len(array_connected) + 1])
-                '''it was the left hand which is commented(deleted) up '''
         return numpy.asarray(axes)
 
     def is_a_possible_degree(self, action_cube_num, act, which_neighbor_cube_if_is_con):
-        # print(f"coordinates : {self.game.coordinates}\nselll: {action_cube_num}:{act}:{
-        # which_neighbor_cube_if_is_con}")
         action_axis = act[0]
         action_degree = act[1]
         coo = self.cube_rotate(action_cube_num + int(which_neighbor_cube_if_is_con), action_degree, action_axis)
-        # print(f"cube_num:{action_cube_num}\tact :{act} ,which_neighbor_cube_if_is_con={
-        # which_neighbor_cube_if_is_con}\n" f"{coo}")
-        if self.is_not_ghostly(coo):
+        if check_coordinates(coo):
             return coo
-            # flag = False
-            # # print( f"coo:{coo}\ncoordinates :{self.game.coordinates}")
-            # for index, coord in enumerate(coo,0):
-            #     for i in range(0, 3):
-            #         if coord[i] != self.game.coordinates[index][i]:
-            #             flag = True
-            # if flag:
-            #     return coo
         return None
-        # axis = self.game.get_axis(action_cube_num - 1)
-        # bool_connected, array_connected, index_connected = self.game.is_connected(action_cube_num - 1)
-        # if bool_connected:
-        #     for iConnected in array_connected:
-        #         if iConnected != index_connected:
-        #             '''is not the action cube itself'''
-        #             if iConnected + 1 not in array_connected:
-        #                 '''and it's the last one'''
-        #                 temp_axis = self.game.get_axis(iConnected - 1)
-        #                 '''get axis of <the last one and the one after it>'''
-        #                 if action_axis != temp_axis:
-        #                     '''if they are not in the same axis'''
-        #                     self.cube_rotate(iConnected - 1, action_degree, action_axis)
-        # else :
-        #     if action_axis != axis:  # second part
-        #         self.cube_rotate(action_cube_num - 1, action_degree, action_axis)
-        #     elif action_axis != axis:
 
     def cube_rotate(self, action_cube_num, action_degree, action_axis):
         coo = numpy.asarray(self.game.coordinates).copy()
-        # print(f"action_cube_num: {action_cube_num} action_degree: {action_degree} action_axis:{action_axis}")
-        # print(f"coo before:{coo}" )
+        coo = numpy.array(coo).astype(int)
+        to_minus = coo[action_cube_num]
+        coo = coo - to_minus
         for i in range(action_cube_num, 27):
             r = Rotate.from_euler(action_axis, action_degree, degrees=True)
-            coo[i] = r.apply(coo[i])
-            coo[i] = coo[i].tolist()
-            '''to convert to int'''
-            coo[i] = list(map(int, coo[i]))
-        # print(f"game after{self.game.coordinates}")
-        return coo
+            rr = r.as_matrix().T.astype(int)
+            coo[i] = coo[i] @ rr
 
-    @staticmethod
-    def is_not_ghostly(coo):
-        new_list = []
-        for i in coo:
-            # if i not in new_list:
-            for j in new_list:
-                flag = True
-                for x in range(0, len(i)):
-                    if i[x] != j[x]:
-                        flag = False
-                        break
-                if flag:
-                    # print(f"coo : {coo}\ni : {i} j : {j}\n\n")
-                    return False
-            new_list.append(i)
-        return True
+        numpy.array(coo).astype(int)
+        coo = coo + to_minus
+        return coo
 
 
 def cartesian_product(*arrays):
@@ -421,3 +284,16 @@ def cartesian_product(*arrays):
     for i, a in enumerate(numpy.ix_(*arrays)):
         arr[..., i] = a
     return arr.reshape(-1, la)
+
+
+def check_coordinates(coordinates):
+    for i in range(0, len(coordinates)):
+        for j in range(0, len(coordinates)):
+            if i != j:
+                temp = 0
+                for z in range(0, 3):
+                    if coordinates[i][z] == coordinates[j][z]:
+                        temp += 1
+                if temp == 3:
+                    return False
+    return True

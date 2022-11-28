@@ -11,7 +11,7 @@ class Graphics:
         # color[flat]=1
         #
         # flat=list(flat)
-        # for i, (a,b) in enumerate(zip(env.stick_together[:-1], env.stick_together[1:])):
+        # for problem, (a,b) in enumerate(zip(env.stick_together[:-1], env.stick_together[1:])):
         #     a=[a[0]+1, a[1]+1]; b=[b[0]+1, b[1]+1]
         #     if a[1]+1!=b[0]: continue
         #     s=b[0]-1
